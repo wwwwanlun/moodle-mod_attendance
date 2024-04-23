@@ -1255,7 +1255,7 @@ function attendance_get_automarkoptions() {
         $options[ATTENDANCE_AUTOMARK_ALL] = get_string('automarkall', 'attendance');
     }
     $options[ATTENDANCE_AUTOMARK_CLOSE] = get_string('automarkclose', 'attendance');
-    if ($COURSE == SITEID || $COURSE->enablecompletion == COMPLETION_ENABLED) {
+    if ($COURSE->id == SITEID || $COURSE->enablecompletion == COMPLETION_ENABLED) {
         $options[ATTENDANCE_AUTOMARK_ACTIVITYCOMPLETION] = get_string('onactivitycompletion', 'attendance');
     }
 
