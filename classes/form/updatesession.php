@@ -24,6 +24,8 @@
 
 namespace mod_attendance\form;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * class for displaying update session form.
  *
@@ -39,7 +41,7 @@ class updatesession extends \moodleform {
      */
     public function definition() {
 
-        global $DB, $COURSE;
+        global $DB;
         $mform    =& $this->_form;
 
         $modcontext    = $this->_customdata['modcontext'];
@@ -65,10 +67,9 @@ class updatesession extends \moodleform {
             'sessiondate' => $sess->sessdate,
             'sestime' => array('starthour' => $starthour, 'startminute' => $startminute,
             'endhour' => $endhour, 'endminute' => $endminute),
-            'sdescription' => $sess->description_editor,
+            'sdescription' => $sess->description,
             'calendarevent' => $sess->calendarevent,
             'studentscanmark' => $sess->studentscanmark,
-            'allowupdatestatus' => $sess->allowupdatestatus,
             'studentpassword' => $sess->studentpassword,
             'autoassignstatus' => $sess->autoassignstatus,
             'subnet' => $sess->subnet,
@@ -79,8 +80,6 @@ class updatesession extends \moodleform {
             'preventsharediptime' => $sess->preventsharediptime,
             'includeqrcode' => $sess->includeqrcode,
             'rotateqrcode' => $sess->rotateqrcode,
-            'automarkcmid' => $sess->automarkcmid,
-            'studentsearlyopentime' => $sess->studentsearlyopentime
         );
         if ($sess->subnet == $attendancesubnet) {
             $data['usedefaultsubnet'] = 1;
@@ -112,8 +111,7 @@ class updatesession extends \moodleform {
         $mform->addElement('hidden', 'statusset', $sess->statusset);
         $mform->setType('statusset', PARAM_INT);
 
-        $mform->addElement('editor', 'sdescription', get_string('description', 'attendance'),
-                           array('rows' => 1, 'columns' => 80), $defopts);
+        $mform->addElement('textarea', 'sdescription', get_string('description', 'attendance'),'wrap="virtual" rows="10" cols="50"');
         $mform->setType('sdescription', PARAM_RAW);
 
         if (!empty(get_config('attendance', 'enablecalendar'))) {
@@ -138,37 +136,17 @@ class updatesession extends \moodleform {
         if (!empty($studentscanmark)) {
             $mform->addElement('checkbox', 'studentscanmark', '', get_string('studentscanmark', 'attendance'));
             $mform->addHelpButton('studentscanmark', 'studentscanmark', 'attendance');
-            $mform->addElement('checkbox', 'allowupdatestatus', '', get_string('allowupdatestatus', 'attendance'));
-            $mform->addHelpButton('allowupdatestatus', 'allowupdatestatus', 'attendance');
-            $mform->hideif('allowupdatestatus', 'studentscanmark', 'notchecked');
-            $mform->addElement('duration', 'studentsearlyopentime', get_string('studentsearlyopentime', 'attendance'));
-            $mform->addHelpButton('studentsearlyopentime', 'studentsearlyopentime', 'attendance');
-            $mform->hideif('studentsearlyopentime', 'studentscanmark', 'notchecked');
         } else {
             $mform->addElement('hidden', 'studentscanmark', '0');
             $mform->settype('studentscanmark', PARAM_INT);
-            $mform->addElement('hidden', 'allowupdatestatus', '0');
-            $mform->settype('allowupdatestatus', PARAM_INT);
-            $mform->addElement('hidden', 'studentsearlyopentime', '0');
-            $mform->settype('studentsearlyopentime', PARAM_INT);
         }
 
-        if ($DB->record_exists('attendance_statuses', ['attendanceid' => $this->_customdata['att']->id, 'setunmarked' => 1])) {
-            $options2 = attendance_get_automarkoptions();
+        $options2 = attendance_get_automarkoptions();
 
-            $mform->addElement('select', 'automark', get_string('automark', 'attendance'), $options2);
-            $mform->setType('automark', PARAM_INT);
-            $mform->addHelpButton('automark', 'automark', 'attendance');
+        $mform->addElement('select', 'automark', get_string('automark', 'attendance'), $options2);
+        $mform->setType('automark', PARAM_INT);
+        $mform->addHelpButton('automark', 'automark', 'attendance');
 
-            $automarkcmoptions2 = attendance_get_coursemodulenames($COURSE->id);
-
-            $mform->addElement('select', 'automarkcmid', get_string('selectactivity', 'attendance'), $automarkcmoptions2);
-            $mform->setType('automarkcmid', PARAM_INT);
-            $mform->hideif('automarkcmid', 'automark', 'neq', '3');
-            if (!empty($sess->automarkcompleted)) {
-                $mform->hardFreeze('automarkcmid,automark,studentscanmark,allowupdatestatus');
-            }
-        }
         if (!empty($studentscanmark)) {
             $mform->addElement('text', 'studentpassword', get_string('studentpassword', 'attendance'));
             $mform->setType('studentpassword', PARAM_TEXT);
@@ -213,13 +191,6 @@ class updatesession extends \moodleform {
         $mform->addHelpButton('preventsharedgroup', 'preventsharedip', 'attendance');
         $mform->setAdvanced('preventsharedgroup');
         $mform->setType('preventsharediptime', PARAM_INT);
-        $mform->hideif('preventsharediptime', 'preventsharedip', 'noteq', ATTENDANCE_SHAREDIP_MINUTES);
-
-        // Add custom field data to form.
-        $handler = \mod_attendance\customfield\session_handler::create();
-        $handler->instance_form_definition($mform, $sess->id);
-        $data['id'] = $sess->id;
-        $data = $handler->instance_form_before_set_data_array($data);
 
         $mform->setDefaults($data);
         $this->add_action_buttons(true);
@@ -240,9 +211,7 @@ class updatesession extends \moodleform {
             $errors['sestime'] = get_string('invalidsessionendtime', 'attendance');
         }
 
-        if (!empty($data['studentscanmark']) && isset($data['automark'])
-            && $data['automark'] == ATTENDANCE_AUTOMARK_CLOSE) {
-
+        if (!empty($data['studentscanmark']) && $data['automark'] == ATTENDANCE_AUTOMARK_CLOSE) {
             $cm            = $this->_customdata['cm'];
             // Check that the selected statusset has a status to use when unmarked.
             $sql = 'SELECT id
@@ -254,7 +223,8 @@ class updatesession extends \moodleform {
                 $errors['automark'] = get_string('noabsentstatusset', 'attendance');
             }
         }
-        if (!empty($data['studentscanmark']) && $data['preventsharedip'] == ATTENDANCE_SHAREDIP_MINUTES &&
+
+        if (!empty($data['studentscanmark']) && !empty($data['preventsharedip']) &&
                 empty($data['preventsharediptime'])) {
             $errors['preventsharedgroup'] = get_string('iptimemissing', 'attendance');
 

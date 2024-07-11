@@ -53,7 +53,7 @@ function attendance_create_calendar_event(&$session) {
     $caleventdata->timestart      = $session->sessdate;
     $caleventdata->timeduration   = $session->duration;
     $caleventdata->description    = $session->description;
-    $caleventdata->format         = $session->descriptionformat;
+    $caleventdata->format         = 1;
     $caleventdata->eventtype      = 'attendance';
     $caleventdata->timemodified   = time();
     $caleventdata->modulename     = 'attendance';
@@ -175,7 +175,7 @@ function attendance_delete_calendar_events($sessionsids) {
  */
 function attendance_existing_calendar_events_ids($sessionsids) {
     global $DB;
-    $caleventsids = array_keys($DB->get_records_list('attendance_sessions', 'id', $sessionsids, '', 'DISTINCT caleventid'));
+    $caleventsids = array_keys($DB->get_records_list('attendance_sessions', 'id', $sessionsids, '', 'caleventid'));
     $existingcaleventsids = array_filter($caleventsids);
     if (! empty($existingcaleventsids)) {
         return $existingcaleventsids;

@@ -43,15 +43,25 @@ $att            = $DB->get_record('attendance', array('id' => $cm->instance), '*
 // Check this is a valid session for this attendance.
 $session        = $DB->get_record('attendance_sessions', array('id' => $pageparams->sessionid, 'attendanceid' => $att->id),
                                   '*', MUST_EXIST);
-
-require_login($course, true, $cm);
+                                  
+                                  require_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/attendance:takeattendances', $context);
 
 $pageparams->group = groups_get_activity_group($cm, true);
 
 $pageparams->init($course->id);
+
+if($pageparams->group==0){
+    $groupid=groups_get_group_by_name($course->id, 'Current');
+    if(isset($groupid)){
+        $pageparams->group=$groupid;
+    }
+}
+
 $att = new mod_attendance_structure($att, $cm, $course, $PAGE->context, $pageparams);
+
+$results='';
 
 $allowedgroups = groups_get_activity_allowed_groups($cm);
 if (!empty($pageparams->grouptype) && !array_key_exists($pageparams->grouptype, $allowedgroups)) {
@@ -60,47 +70,72 @@ if (!empty($pageparams->grouptype) && !array_key_exists($pageparams->grouptype, 
 }
 
 if (($formdata = data_submitted()) && confirm_sesskey()) {
-    $att->take_from_form_data($formdata);
-
-    $group = 0;
-    if ($att->pageparams->grouptype != mod_attendance_structure::SESSION_COMMON) {
-        $group = $att->pageparams->grouptype;
-    } else {
-        if ($att->pageparams->group) {
-            $group = $att->pageparams->group;
+    $sessdesp=$_POST['sessdescription'];
+    $sessid=$session->id;
+    if($sessdesp=='' || $sessdesp=='Regular class session'){
+    }else{
+        $results=$att->change_session_name($sessdesp,$sessid);
+        if($results=='success'){
+            $att->take_from_form_data($formdata);
+                $group = 0;
+            if ($att->pageparams->grouptype != mod_attendance_structure::SESSION_COMMON) {
+                $group = $att->pageparams->grouptype;
+            } else {
+                if ($att->pageparams->group) {
+                    $group = $att->pageparams->group;
+                }
+            }
+        
+            $totalusers = count_enrolled_users(context_module::instance($cm->id), 'mod/attendance:canbelisted', $group);
+            $usersperpage = $att->pageparams->perpage;
+        
+            if (!empty($att->pageparams->page) && $att->pageparams->page && $totalusers && $usersperpage) {
+                $numberofpages = ceil($totalusers / $usersperpage);
+                if ($att->pageparams->page < $numberofpages) {
+                    $params = array(
+                        'sessionid' => $att->pageparams->sessionid,
+                        'grouptype' => $att->pageparams->grouptype);
+                    $params['page'] = $att->pageparams->page + 1;
+                    redirect($att->url_take($params), get_string('moreattendance', 'attendance'));
+                }
+            }
+        
+            redirect($att->url_manage(), get_string('attendancesuccess', 'attendance'));
+        }else{
+            //display error message
         }
+
     }
-
-    $totalusers = count_enrolled_users(context_module::instance($cm->id), 'mod/attendance:canbelisted', $group);
-    $usersperpage = $att->pageparams->perpage;
-
-    if (!empty($att->pageparams->page) && $att->pageparams->page && $totalusers && $usersperpage) {
-        $numberofpages = ceil($totalusers / $usersperpage);
-        if ($att->pageparams->page < $numberofpages) {
-            $params = array(
-                'sessionid' => $att->pageparams->sessionid,
-                'grouptype' => $att->pageparams->grouptype);
-            $params['page'] = $att->pageparams->page + 1;
-            redirect($att->url_take($params), get_string('moreattendance', 'attendance'));
-        }
-    }
-
-    redirect($att->url_manage(), get_string('attendancesuccess', 'attendance'));
+   
 }
 
-$PAGE->set_url($att->url_take((array)$pageparams));
+$PAGE->set_url($att->url_take());
 $PAGE->set_title($course->shortname. ": ".$att->name);
 $PAGE->set_heading($course->fullname);
 $PAGE->set_cacheable(true);
 $PAGE->navbar->add($att->name);
 
 $output = $PAGE->get_renderer('mod_attendance');
-$sesstable = new mod_attendance\output\take_data($att);
+$tabs = new attendance_tabs($att);
+$sesstable = new attendance_take_data($att);
 
 // Output starts here.
 
 echo $output->header();
+if (($formdata = data_submitted()) && confirm_sesskey()) {
+    $sessdespp=$_POST['sessdescription'];
+    if($sessdespp=='' || $sessdespp=='Regular class session'){
+        echo '<p style="font-weight:bold;color:red">* Invalid session description</p>';
+        echo '<hr/>';
+    }
+}
+if ($results=='fail') {
+        echo '<p style="font-weight:bold;color:red">* You have to change the session description</p>';
+        echo '<hr/>';
+}
 
+echo $output->heading(get_string('attendanceforthecourse', 'attendance').' :: ' .format_string($course->fullname));
+echo $output->render($tabs);
 echo $output->render($sesstable);
 
 echo $output->footer();

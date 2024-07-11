@@ -245,7 +245,6 @@ class mod_attendance_external extends external_api {
         $sess->calendarevent = (int) $params['addcalendarevent'];
         $sess->timemodified = time();
         $sess->studentscanmark = 0;
-        $sess->allowupdatestatus = 0;
         $sess->autoassignstatus = 0;
         $sess->subnet = '';
         $sess->studentpassword = '';
@@ -256,8 +255,6 @@ class mod_attendance_external extends external_api {
         $sess->subnet = $attendance->subnet;
         $sess->statusset = 0;
         $sess->groupid = $groupid;
-        $sess->automarkcmid = 0;
-        $sess->studentsearlyopentime = get_config('attendance', 'studentsearlyopentime');
 
         $sessionid = $attendance->add_session($sess);
         return array('sessionid' => $sessionid);
@@ -371,7 +368,7 @@ class mod_attendance_external extends external_api {
                          'lasttaken' => new external_value(PARAM_INT, 'Session last taken time.'),
                          'lasttakenby' => new external_value(PARAM_INT, 'ID of the last user that took this session.'),
                          'timemodified' => new external_value(PARAM_INT, 'Time modified.'),
-                         'description' => new external_value(PARAM_RAW, 'Session description.'),
+                         'description' => new external_value(PARAM_TEXT, 'Session description.'),
                          'descriptionformat' => new external_value(PARAM_INT, 'Session description format.'),
                          'studentscanmark' => new external_value(PARAM_INT, 'Students can mark their own presence.'),
                          'absenteereport' => new external_value(PARAM_INT, 'Session included in absetee reports.'),
@@ -379,8 +376,7 @@ class mod_attendance_external extends external_api {
                          'preventsharedip' => new external_value(PARAM_INT, 'Prevent students from sharing IP addresses.'),
                          'preventsharediptime' => new external_value(PARAM_INT, 'Time delay before IP address is allowed again.'),
                          'statusset' => new external_value(PARAM_INT, 'Session statusset.'),
-                         'includeqrcode' => new external_value(PARAM_INT, 'Include QR code when displaying password'),
-                         'studentsearlyopentime' => new external_value(PARAM_INT, 'Duration to allow session to opened early'));
+                         'includeqrcode' => new external_value(PARAM_INT, 'Include QR code when displaying password'));
 
         return $session;
     }
@@ -455,7 +451,7 @@ class mod_attendance_external extends external_api {
         $statuses = array('id' => new external_value(PARAM_INT, 'Status id.'),
                           'attendanceid' => new external_value(PARAM_INT, 'Attendance id.'),
                           'acronym' => new external_value(PARAM_TEXT, 'Status acronym.'),
-                          'description' => new external_value(PARAM_RAW, 'Status description.'),
+                          'description' => new external_value(PARAM_TEXT, 'Status description.'),
                           'grade' => new external_value(PARAM_FLOAT, 'Status grade.'),
                           'visible' => new external_value(PARAM_INT, 'Status visibility.'),
                           'deleted' => new external_value(PARAM_INT, 'informs if this session was deleted.'),
@@ -545,54 +541,5 @@ class mod_attendance_external extends external_api {
      */
     public static function update_user_status_returns() {
         return new external_value(PARAM_TEXT, 'Http code');
-    }
-
-    /**
-     * Get sessions params.
-     *
-     * @return external_function_parameters
-     */
-    public static function get_sessions_parameters() {
-        return new external_function_parameters(
-                    array(
-                        'attendanceid' => new external_value(PARAM_INT, 'Attendance id.', VALUE_REQUIRED),
-                    )
-                );
-    }
-
-    /**
-     * Describes get_sessions return values.
-     *
-     * @return external_multiple_structure
-     */
-    public static function get_sessions_returns() {
-        return new external_multiple_structure(self::get_session_returns());
-    }
-
-    /**
-     * Get sessions.
-     *
-     * @param int $attendanceid
-     */
-    public static function get_sessions($attendanceid) {
-         $params = self::validate_parameters(self::get_sessions_parameters(), array(
-            'attendanceid' => $attendanceid,
-         ));
-
-        // Check permissions.
-        $cm = get_coursemodule_from_instance('attendance', $attendanceid, 0, false, MUST_EXIST);
-        $context = context_module::instance($cm->id);
-        self::validate_context($context);
-
-        $capabilities = array(
-            'mod/attendance:manageattendances',
-            'mod/attendance:takeattendances',
-            'mod/attendance:changeattendances'
-        );
-        if (!has_any_capability($capabilities, $context)) {
-            throw new invalid_parameter_exception('Invalid session id or no permissions.');
-        }
-
-        return attendance_handler::get_sessions($params['attendanceid']);
     }
 }

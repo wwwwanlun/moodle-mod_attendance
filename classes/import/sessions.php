@@ -25,6 +25,8 @@
 
 namespace mod_attendance\import;
 
+defined('MOODLE_INTERNAL') || die();
+
 use csv_import_reader;
 use mod_attendance_notifyqueue;
 use mod_attendance_structure;
@@ -64,9 +66,6 @@ class sessions {
     /** @var \core\progress\display_if_slow|null $progress The progress bar instance. */
     protected $progress = null;
 
-    /** @var bool $courseprovided If course has been provided we don't need to map the course field*/
-    protected $courseprovided = false;
-
     /**
      * Store an error message for display later
      *
@@ -91,38 +90,30 @@ class sessions {
      *
      * @return array The headers (lang strings)
      */
-    public function list_required_headers() {
-        $headers = [];
-
-        // If we don't have the "courseprovided" then include the courseshortname header.
-        if (!$this->courseprovided) {
-            $headers[] = get_string('courseshortname', 'attendance');
-        }
-
-        $headers[] = get_string('groups', 'attendance');
-        $headers[] = get_string('sessiondate', 'attendance');
-        $headers[] = get_string('from', 'attendance');
-        $headers[] = get_string('to', 'attendance');
-        $headers[] = get_string('description', 'attendance');
-        $headers[] = get_string('repeaton', 'attendance');
-        $headers[] = get_string('repeatevery', 'attendance');
-        $headers[] = get_string('repeatuntil', 'attendance');
-        $headers[] = get_string('studentscanmark', 'attendance');
-        $headers[] = get_string('allowupdatestatus', 'attendance');
-        $headers[] = get_string('passwordgrp', 'attendance');
-        $headers[] = get_string('randompassword', 'attendance');
-        $headers[] = get_string('subnet', 'attendance');
-        $headers[] = get_string('automark', 'attendance');
-        $headers[] = get_string('autoassignstatus', 'attendance');
-        $headers[] = get_string('absenteereport', 'attendance');
-        $headers[] = get_string('preventsharedip', 'attendance');
-        $headers[] = get_string('preventsharediptime', 'attendance');
-        $headers[] = get_string('calendarevent', 'attendance');
-        $headers[] = get_string('includeqrcode', 'attendance');
-        $headers[] = get_string('rotateqrcode', 'attendance');
-        $headers[] = get_string('studentsearlyopentime', 'attendance');
-
-        return $headers;
+    public static function list_required_headers() {
+        return array(
+            get_string('courseshortname', 'attendance'),
+            get_string('groups', 'attendance'),
+            get_string('sessiondate', 'attendance'),
+            get_string('from', 'attendance'),
+            get_string('to', 'attendance'),
+            get_string('description', 'attendance'),
+            get_string('repeaton', 'attendance'),
+            get_string('repeatevery', 'attendance'),
+            get_string('repeatuntil', 'attendance'),
+            get_string('studentscanmark', 'attendance'),
+            get_string('passwordgrp', 'attendance'),
+            get_string('randompassword', 'attendance'),
+            get_string('subnet', 'attendance'),
+            get_string('automark', 'attendance'),
+            get_string('autoassignstatus', 'attendance'),
+            get_string('absenteereport', 'attendance'),
+            get_string('preventsharedip', 'attendance'),
+            get_string('preventsharediptime', 'attendance'),
+            get_string('calendarevent', 'attendance'),
+            get_string('includeqrcode', 'attendance'),
+            get_string('rotateqrcode', 'attendance'),
+        );
     }
 
     /**
@@ -137,50 +128,58 @@ class sessions {
     /**
      * Read the data from the mapping form.
      *
-     * @param object $data The mapping data.
+     * @param array $data The mapping data.
      */
     protected function read_mapping_data($data) {
-
-        $headerkeys = [];
-        // If we have don't have "courseprovided" then the mapping data is increased by one to include the course field.
-        if (!$this->courseprovided) {
-            $headerkeys[] = 'course';
-        }
-
-        $headerkeys[] = 'groups';
-        $headerkeys[] = 'sessiondate';
-        $headerkeys[] = 'from';
-        $headerkeys[] = 'to';
-        $headerkeys[] = 'description';
-        $headerkeys[] = 'repeaton';
-        $headerkeys[] = 'repeatevery';
-        $headerkeys[] = 'repeatuntil';
-        $headerkeys[] = 'studentscanmark';
-        $headerkeys[] = 'allowupdatestatus';
-        $headerkeys[] = 'passwordgrp';
-        $headerkeys[] = 'randompassword';
-        $headerkeys[] = 'subnet';
-        $headerkeys[] = 'automark';
-        $headerkeys[] = 'autoassignstatus';
-        $headerkeys[] = 'absenteereport';
-        $headerkeys[] = 'preventsharedip';
-        $headerkeys[] = 'preventsharediptime';
-        $headerkeys[] = 'calendarevent';
-        $headerkeys[] = 'includeqrcode';
-        $headerkeys[] = 'rotateqrcode';
-        $headerkeys[] = 'studentsearlyopentime';
-
-        // Subtract 1 for 0 indexed arrays.
-        $valuecount = count($headerkeys) - 1;
         if ($data) {
-            $headervalues = [];
-            for ($i = 0; $i <= $valuecount; $i++) {
-                $headervalues[] = $data->{"header$i"} ?? null;
-            }
+            return array(
+                'course' => $data->header0,
+                'groups' => $data->header1,
+                'sessiondate' => $data->header2,
+                'from' => $data->header3,
+                'to' => $data->header4,
+                'description' => $data->header5,
+                'repeaton' => $data->header6,
+                'repeatevery' => $data->header7,
+                'repeatuntil' => $data->header8,
+                'studentscanmark' => $data->header9,
+                'passwordgrp' => $data->header10,
+                'randompassword' => $data->header11,
+                'subnet' => $data->header12,
+                'automark' => $data->header13,
+                'autoassignstatus' => $data->header14,
+                'absenteereport' => $data->header15,
+                'preventsharedip' => $data->header16,
+                'preventsharediptime' => $data->header17,
+                'calendarevent' => $data->header18,
+                'includeqrcode' => $data->header19,
+                'rotateqrcode' => $data->header20,
+            );
         } else {
-            $headervalues = range(0, $valuecount);
+            return array(
+                'course' => 0,
+                'groups' => 1,
+                'sessiondate' => 2,
+                'from' => 3,
+                'to' => 4,
+                'description' => 5,
+                'repeaton' => 6,
+                'repeatevery' => 7,
+                'repeatuntil' => 8,
+                'studentscanmark' => 9,
+                'passwordgrp' => 10,
+                'randompassword' => 11,
+                'subnet' => 12,
+                'automark' => 13,
+                'autoassignstatus' => 14,
+                'absenteereport' => 15,
+                'preventsharedip' => 16,
+                'preventsharediptime' => 17,
+                'calendarevent' => 18,
+                'includeqrcode' => 19,
+                'rotateqrcode' => 20
+            );
         }
-        return array_combine($headerkeys, $headervalues);
     }
 
     /**
@@ -206,18 +205,12 @@ class sessions {
      * @param string $importid The id of the csv import.
      * @param array $mappingdata The mapping data from the import form.
      * @param bool $useprogressbar Whether progress bar should be displayed, to avoid html output on CLI.
-     * @param bool $courseshortname Course shortname for the course level imports.
-     * @param bool $attendanceid ID for the attendance activity for course level imports.
      */
     public function __construct($text = null, $encoding = null, $delimiter = null, $importid = 0,
-                                $mappingdata = null, $useprogressbar = false, $courseshortname = null, $attendanceid = null) {
-        global $CFG, $DB;
+                                $mappingdata = null, $useprogressbar = false) {
+        global $CFG;
 
         require_once($CFG->libdir . '/csvlib.class.php');
-
-        if ($courseshortname) {
-            $this->courseprovided = true;
-        }
 
         $pluginconfig = get_config('attendance');
 
@@ -259,12 +252,7 @@ class sessions {
             $mapping = $this->read_mapping_data($mappingdata);
 
             $session = new stdClass();
-            $session->attendanceid = $attendanceid;
-            if ($this->courseprovided) {
-                $session->course = $courseshortname;
-            } else {
-                $session->course = $this->get_column_data($row, $mapping['course']);
-            }
+            $session->course = $this->get_column_data($row, $mapping['course']);
             if (empty($session->course)) {
                 \mod_attendance_notifyqueue::notify_problem(get_string('error:sessioncourseinvalid', 'attendance'));
                 continue;
@@ -310,7 +298,7 @@ class sessions {
             $session->sdescription['text'] = '<p>' . $this->get_column_data($row, $mapping['description']) . '</p>';
             $session->sdescription['format'] = FORMAT_HTML;
             $session->sdescription['itemid'] = 0;
-            $session->studentpassword = $this->get_column_data($row, $mapping['passwordgrp']);
+            $session->passwordgrp = $this->get_column_data($row, $mapping['passwordgrp']);
             $session->subnet = $this->get_column_data($row, $mapping['subnet']);
             // Set session subnet restriction. Use the default activity level subnet if there isn't one set for this session.
             if (empty($session->subnet)) {
@@ -319,74 +307,52 @@ class sessions {
                 $session->usedefaultsubnet = '';
             }
 
-            $studentscanmark = $this->get_column_data($row, $mapping['studentscanmark']);
-            if ($studentscanmark == -1) {
+            if ($mapping['studentscanmark'] == -1) {
                 $session->studentscanmark = $pluginconfig->studentscanmark_default;
             } else {
-                $session->studentscanmark = $studentscanmark;
+                $session->studentscanmark = $this->get_column_data($row, $mapping['studentscanmark']);
             }
-
-            $allowupdatestatus = $this->get_column_data($row, $mapping['allowupdatestatus']);
-            if ($allowupdatestatus == -1) {
-                $session->allowupdatestatus = $pluginconfig->allowupdatestatus_default;
-            } else {
-                $session->allowupdatestatus = $allowupdatestatus;
-            }
-
-            $randompassword = $this->get_column_data($row, $mapping['randompassword']);
-            if ($randompassword == -1) {
+            if ($mapping['randompassword'] == -1) {
                 $session->randompassword = $pluginconfig->randompassword_default;
             } else {
-                $session->randompassword = $randompassword;
+                $session->randompassword = $this->get_column_data($row, $mapping['randompassword']);
             }
-
-            $automark = $this->get_column_data($row, $mapping['automark']);
-            if ($automark == -1) {
+            if ($mapping['automark'] == -1) {
                 $session->automark = $pluginconfig->automark_default;
             } else {
-                $session->automark = $automark;
+                $session->automark = $this->get_column_data($row, $mapping['automark']);
             }
-
-            $autoassignstatus = $this->get_column_data($row, $mapping['autoassignstatus']);
-            if ($autoassignstatus == -1) {
+            if ($mapping['autoassignstatus'] == -1) {
                 $session->autoassignstatus = $pluginconfig->autoassignstatus;
             } else {
-                $session->autoassignstatus = $autoassignstatus;
+                $session->autoassignstatus = $this->get_column_data($row, $mapping['autoassignstatus']);
             }
-
-            $absenteereport = $this->get_column_data($row, $mapping['absenteereport']);
-            if ($absenteereport == -1) {
+            if ($mapping['absenteereport'] == -1) {
                 $session->absenteereport = $pluginconfig->absenteereport_default;
             } else {
-                $session->absenteereport = $absenteereport;
+                $session->absenteereport = $this->get_column_data($row, $mapping['absenteereport']);
             }
-
-            $preventsharedip = $this->get_column_data($row, $mapping['preventsharedip']);
-            if ($preventsharedip == -1) {
+            if ($mapping['preventsharedip'] == -1) {
                 $session->preventsharedip = $pluginconfig->preventsharedip;
             } else {
-                $session->preventsharedip = $preventsharedip;
+                $session->preventsharedip = $this->get_column_data($row, $mapping['preventsharedip']);
             }
-
-            $preventsharediptime = $this->get_column_data($row, $mapping['preventsharediptime']);
-            if ($preventsharediptime == -1) {
+            if ($mapping['preventsharediptime'] == -1) {
                 $session->preventsharediptime = $pluginconfig->preventsharediptime;
             } else {
-                $session->preventsharediptime = $preventsharediptime;
+                $session->preventsharediptime = $this->get_column_data($row, $mapping['preventsharediptime']);
             }
 
-            $calendarevent = $this->get_column_data($row, $mapping['calendarevent']);
-            if ($calendarevent == -1) {
+            if ($mapping['calendarevent'] == -1) {
                 $session->calendarevent = $pluginconfig->calendarevent_default;
             } else {
-                $session->calendarevent = $calendarevent;
+                $session->calendarevent = $this->get_column_data($row, $mapping['calendarevent']);
             }
 
-            $includeqrcode = $this->get_column_data($row, $mapping['includeqrcode']);
-            if ($includeqrcode == -1) {
+            if ($mapping['includeqrcode'] == -1) {
                 $session->includeqrcode = $pluginconfig->includeqrcode_default;
             } else {
-                $session->includeqrcode = $includeqrcode;
+                $session->includeqrcode = $this->get_column_data($row, $mapping['includeqrcode']);
 
                 if ($session->includeqrcode == 1 && $session->studentscanmark != 1) {
                     \mod_attendance_notifyqueue::notify_problem(get_string('error:qrcode', 'attendance'));
@@ -394,49 +360,10 @@ class sessions {
                 }
 
             }
-
-            $rotateqrcode = $this->get_column_data($row, $mapping['rotateqrcode']);
-            if ($rotateqrcode == -1) {
+            if ($mapping['rotateqrcode'] == -1) {
                 $session->rotateqrcode = $pluginconfig->rotateqrcode_default;
             } else {
-                $session->rotateqrcode = $rotateqrcode;
-            }
-            if ($session->rotateqrcode) {
-                $session->includeqrcode = 0;
-            }
-
-            $studentsearlyopentime = $this->get_column_data($row, $mapping['studentsearlyopentime']);
-            if ($studentsearlyopentime == -1) {
-                $session->studentsearlyopentime = $pluginconfig->studentsearlyopentime;
-            } else {
-                $session->studentsearlyopentime = $studentsearlyopentime;
-            }
-
-            // Reapeating session settings.
-            if (empty($mapping['repeaton'])) {
-                $session->sdays = [];
-            } else {
-                $repeaton = $this->get_column_data($row, $mapping['repeaton']);
-                $sdays = array_map('trim', explode(',', $repeaton));
-                $session->sdays = array_fill_keys($sdays, 1);
-            }
-            if (empty($mapping['repeatevery'])) {
-                $session->period = '';
-            } else {
-                $session->period = $this->get_column_data($row, $mapping['repeatevery']);
-            }
-            if (empty($mapping['repeatuntil'])) {
-                $session->sessionenddate = null;
-            } else {
-                $session->sessionenddate = strtotime($this->get_column_data($row, $mapping['repeatuntil']));
-            }
-            $course = $DB->get_record('course', ['shortname' => $session->course]);
-            if ($course) {
-                $session->coursestartdate = $course;
-            }
-            if (!empty($session->sdays) && !empty($session->period) &&
-                !empty($session->sessionenddate) && !empty($session->coursestartdate)) {
-                $session->addmultiply = 1;
+                $session->rotateqrcode = $this->get_column_data($row, $mapping['rotateqrcode']);
             }
 
             $session->statusset = 0;
@@ -513,12 +440,10 @@ class sessions {
                         $session->groups = $groupids;
                     }
 
-                    // Get activities in course or specific activity if provided.
-                    $params = ['course' => $course->id];
-                    if ($session->attendanceid) {
-                        $params['id'] = $session->attendanceid;
-                    }
-                    $activities = $DB->get_recordset('attendance', $params);
+                    // Get activities in course.
+                    $activities = $DB->get_recordset('attendance', array(
+                        'course' => $course->id
+                    ), 'id', 'id');
 
                     foreach ($activities as $activity) {
                         // Build the session data.
@@ -532,11 +457,10 @@ class sessions {
 
                         foreach ($sessions as $index => $sess) {
                             // Check for duplicate sessions.
-                            if ($this->session_exists($sess, $att->id)) {
+                            if ($this->session_exists($sess)) {
                                 mod_attendance_notifyqueue::notify_message(get_string('sessionduplicate', 'attendance', (array(
                                     'course' => $session->course,
-                                    'activity' => $cm->name,
-                                    'date' => construct_session_full_date_time($sess->sessdate, $sess->duration)
+                                    'activity' => $cm->name
                                 ))));
                                 unset($sessions[$index]);
                             } else {
@@ -580,16 +504,19 @@ class sessions {
      * Check if an identical session exists.
      *
      * @param stdClass $session
-     * @param int $attid
      * @return boolean
      */
-    private function session_exists(stdClass $session, $attid) {
+    private function session_exists(stdClass $session) {
         global $DB;
 
-        $check = ['attendanceid' => $attid,
-                  'sessdate' => $session->sessdate,
-                  'duration' => $session->duration,
-                  'groupid' => $session->groupid];
+        $check = clone $session;
+
+        // Remove the properties that aren't useful to check.
+        unset($check->description);
+        unset($check->descriptionitemid);
+        unset($check->timemodified);
+        $check = (array) $check;
+
         if ($DB->record_exists('attendance_sessions', $check)) {
             return true;
         }

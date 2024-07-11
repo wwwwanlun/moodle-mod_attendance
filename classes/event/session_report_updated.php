@@ -23,6 +23,7 @@
  */
 
 namespace mod_attendance\event;
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Event for when a student's attendance report is updated.

@@ -54,7 +54,6 @@ class restore_attendance_activity_task extends restore_activity_task {
     public static function define_decode_contents() {
         $contents = array();
 
-        $contents[] = new restore_decode_content('attendance', array('intro'), 'attendance');
         $contents[] = new restore_decode_content('attendance_sessions',
                           array('description'), 'attendance_session');
 
@@ -128,11 +127,10 @@ class restore_attendance_activity_task extends restore_activity_task {
             $DB->delete_records('event', ['modulename' => 'attendance', 'instance' => $attendanceid, 'courseid' => $courseid]);
         } else {
             // Clean up any orphaned events.
-            $sql = "modulename = 'attendance' AND courseid = :courseid AND id NOT IN (SELECT s.caleventid
-                                                                                        FROM {attendance_sessions} s
-                                                                                        JOIN {attendance} a on a.id = s.attendanceid
-                                                                                       WHERE a.course = :courseid2)";
-            $params = ['courseid' => $courseid, 'courseid2' => $courseid];
+            $sql = "modulename = 'attendance' AND courseid = :courseid AND id NOT IN (SELECT caleventid
+                                                                                        FROM {attendance_sessions}
+                                                                                       WHERE attendanceid = :attendanceid)";
+            $params = ['courseid' => $courseid, 'attendanceid' => $attendanceid];
             $DB->delete_records_select('event', $sql, $params);
         }
     }

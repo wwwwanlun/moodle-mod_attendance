@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * contains functions/constants used by take attendance page.
  *
@@ -53,12 +55,6 @@ class mod_attendance_take_page_params {
 
     /** @var int */
     public $gridcols;
-
-    /** @var int */
-    public $page;
-
-    /** @var int */
-    public $perpage;
 
     /**
      * Initialize params.

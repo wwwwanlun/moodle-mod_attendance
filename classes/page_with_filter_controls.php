@@ -21,6 +21,7 @@
  * @copyright  2016 Dan Marsden http://danmarsden.com
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Base filter controls class - overridden by different views where needed.
@@ -61,9 +62,6 @@ class mod_attendance_page_with_filter_controls {
 
     /** @var int type. */
     public $selectortype        = self::SELECTOR_NONE;
-
-    /** @var int number of items per page */
-    public $perpage;
 
     /** @var int default view. */
     protected $defaultview;
@@ -230,14 +228,14 @@ class mod_attendance_page_with_filter_controls {
             return;
         }
 
-        if ($groupmode == VISIBLEGROUPS || has_capability('moodle/site:accessallgroups', $PAGE->context)) {
+        if ($groupmode == VISIBLEGROUPS or has_capability('moodle/site:accessallgroups', $PAGE->context)) {
             $allowedgroups = groups_get_all_groups($this->cm->course, 0, $this->cm->groupingid);
         } else {
             $allowedgroups = groups_get_all_groups($this->cm->course, $USER->id, $this->cm->groupingid);
         }
 
         if ($allowedgroups) {
-            if ($groupmode == VISIBLEGROUPS || has_capability('moodle/site:accessallgroups', $PAGE->context)) {
+            if ($groupmode == VISIBLEGROUPS or has_capability('moodle/site:accessallgroups', $PAGE->context)) {
                 $this->sessgroupslist[self::SESSTYPE_ALL] = get_string('all', 'attendance');
             }
             // Show Common groups always.

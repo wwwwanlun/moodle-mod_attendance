@@ -23,6 +23,7 @@
  */
 
 namespace mod_attendance\event;
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Event for when an attendance is taken.
@@ -76,6 +77,16 @@ class attendance_taken_by_student extends \core\event\base {
         return new \moodle_url('/take.php', array('id' => $this->contextinstanceid,
                                                                  'sessionid' => $this->other['sessionid'],
                                                                  'grouptype' => $this->other['grouptype']));
+    }
+
+    /**
+     * Replace add_to_log() statement.
+     *
+     * @return array of parameters to be passed to legacy add_to_log() function.
+     */
+    protected function get_legacy_logdata() {
+        return array($this->courseid, 'attendance', 'taken', $this->get_url(),
+            '', $this->contextinstanceid);
     }
 
     /**

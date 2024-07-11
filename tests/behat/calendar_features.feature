@@ -1,4 +1,4 @@
-@mod @mod_attendance
+@mod @mod_attendance @javascript
 Feature: Test the calendar related features in the attendance module
 
   Background:
@@ -10,23 +10,22 @@ Feature: Test the calendar related features in the attendance module
       | teacher1 | Teacher   | 1        | teacher1@example.com |
       | student1 | Student   | 1        | student1@example.com |
     And the following "course enrolments" exist:
-      | course | user     | role           | timestart     |
-      | C1     | student1 | student        | ##yesterday## |
-      | C1     | teacher1 | editingteacher | ##yesterday## |
-    And the following "activity" exists:
-      | activity | attendance      |
-      | course   | C1              |
-      | idnumber | 00001           |
-      | name     | Test attendance |
-    And the following "blocks" exist:
-      | blockname         | contextlevel | reference | pagetypepattern | defaultregion |
-      | calendar_month    | Course       | C1        | course-view-*   | side-pre      |
-    And I log in as "teacher1"
+      | course | user        | role           | timestart     |
+      | C1     | student1    | student        | ##yesterday## |
+      | C1     | teacher1    | editingteacher | ##yesterday## |
 
-  @javascript
+    And I log in as "teacher1"
+    And I am on "Course 1" course homepage with editing mode on
+    And I add the "Upcoming events" block
+    And I add a "Attendance" to section "1" and I fill the form with:
+      | Name | Test attendance |
+    And I log out
+
   Scenario: Calendar events can be created automatically with sessions creation
-    Given I am on the "Test attendance" "mod_attendance > View" page
-    And I click on "Add session" "button"
+    Given I log in as "teacher1"
+    And I am on "Course 1" course homepage
+    And I follow "Test attendance"
+    And I follow "Add session"
     And I set the following fields to these values:
       | id_sestime_starthour   | 23 |
       | id_sestime_startminute | 00 |
@@ -34,5 +33,9 @@ Feature: Test the calendar related features in the attendance module
       | id_sestime_endminute   | 55 |
     And I click on "id_submitbutton" "button"
     And I am on "Course 1" course homepage
-    And I follow "Course calendar"
+    And I follow "Go to calendar"
+    And I should see "Test attendance"
+    And I log out
+    And I log in as "student1"
+    And I follow "Go to calendar"
     Then I should see "Test attendance"

@@ -23,6 +23,7 @@
  */
 
 namespace mod_attendance\event;
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Event for when a student's attendance report is viewed.
@@ -84,6 +85,16 @@ class session_report_viewed extends \core\event\base {
                                                                  'groupby' => $groupby,
                                                                  'sesscourses' => $sesscourses,
                                                                  'curdate' => $this->other['curdate']));
+    }
+
+    /**
+     * Replace add_to_log() statement.
+     *
+     * @return array of parameters to be passed to legacy add_to_log() function.
+     */
+    protected function get_legacy_logdata() {
+        return array($this->courseid, 'attendance', 'student sessions ' . $this->action, $this->get_url(),
+            'student id ' . $this->relateduserid, $this->contextinstanceid);
     }
 
     /**

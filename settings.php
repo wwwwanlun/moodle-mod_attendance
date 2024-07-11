@@ -53,8 +53,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('attendance/studentscanmark',
         get_string('studentscanmark', 'attendance'), get_string('studentscanmark_desc', 'attendance'), 1));
 
-    $settings->add(new admin_setting_configcheckbox('attendance/allowupdatestatus',
-        get_string('allowupdatestatus', 'attendance'), get_string('allowupdatestatus_desc', 'attendance'), 0));
+    $settings->add(new admin_setting_configtext('attendance/attendanceedit',
+        'Time Limit for instructor to take/change attendance (hours)',
+        'Time limit for instructor to take attendance after class', '24', PARAM_INT));
 
     $settings->add(new admin_setting_configtext('attendance/rotateqrcodeinterval',
         get_string('rotateqrcodeinterval', 'attendance'),
@@ -109,10 +110,6 @@ if ($ADMIN->fulltree) {
         get_string('enablewarnings', 'attendance'),
         get_string('enablewarnings_desc', 'attendance'), 0));
 
-    $settings->add(new admin_setting_configcheckbox('attendance/automark_useempty',
-        get_string('automarkuseempty', 'attendance'),
-        get_string('automarkuseempty_desc', 'attendance'), 1));
-
     $fields = array('id' => get_string('studentid', 'attendance'));
     $customfields = profile_get_custom_fields();
     foreach ($customfields as $field) {
@@ -157,16 +154,10 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('attendance/studentscanmark_default',
         get_string('studentscanmark', 'attendance'), '', 0));
 
-    $settings->add(new admin_setting_configcheckbox('attendance/allowupdatestatus_default',
-        get_string('allowupdatestatus', 'attendance'), '', 0));
-
     $options = attendance_get_automarkoptions();
 
     $settings->add(new admin_setting_configselect('attendance/automark_default',
         get_string('automark', 'attendance'), '', 0, $options));
-
-    $settings->add(new admin_setting_configduration('attendance/studentsearlyopentime',
-        get_string('studentsearlyopentime', 'attendance'), get_string('studentsearlyopentime_help', 'attendance'), 0));
 
     $settings->add(new admin_setting_configcheckbox('attendance/randompassword_default',
         get_string('randompassword', 'attendance'), '', 0));

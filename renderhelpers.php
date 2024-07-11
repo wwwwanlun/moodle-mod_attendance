@@ -22,7 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die();
+
+require_once(dirname(__FILE__).'/renderables.php');
+
 /**
  * class Template method for generating user's session's cells
  *
@@ -41,10 +44,10 @@ class user_sessions_cells_generator {
 
     /**
      * Set up params.
-     * @param mod_attendance\output\report_data $reportdata - reportdata.
+     * @param attendance_report_data $reportdata - reportdata.
      * @param stdClass $user - user record.
      */
-    public function  __construct(mod_attendance\output\report_data $reportdata, $user) {
+    public function  __construct(attendance_report_data $reportdata, $user) {
         $this->reportdata = $reportdata;
         $this->user = $user;
     }
@@ -65,13 +68,7 @@ class user_sessions_cells_generator {
                     $this->construct_existing_status_cell($this->reportdata->statuses[$statusid]->acronym .
                                 " ({$points}/{$maxpoints})");
                 } else {
-                    if (!empty($this->reportdata->allstatuses[$statusid] &&
-                        isset($this->reportdata->allstatuses[$statusid]->acronym))) {
-                        $statusac = $this->reportdata->allstatuses[$statusid]->acronym;
-                    } else {
-                        $statusac = get_string('unknownstatus', 'mod_attendance', $statusid);
-                    }
-                    $this->construct_hidden_status_cell($statusac);
+                    $this->construct_hidden_status_cell($this->reportdata->allstatuses[$statusid]->acronym);
                 }
                 if ($remarks) {
                     $this->construct_remarks_cell($this->reportdata->sessionslog[$this->user->id][$sess->id]->remarks);
@@ -80,15 +77,15 @@ class user_sessions_cells_generator {
                 if ($this->user->enrolmentstart > ($sess->sessdate + $sess->duration)) {
                     $starttext = get_string('enrolmentstart', 'attendance', userdate($this->user->enrolmentstart, '%d.%m.%Y'));
                     $this->construct_enrolments_info_cell($starttext);
-                } else if ($this->user->enrolmentend && $this->user->enrolmentend < $sess->sessdate) {
+                } else if ($this->user->enrolmentend and $this->user->enrolmentend < $sess->sessdate) {
                     $endtext = get_string('enrolmentend', 'attendance', userdate($this->user->enrolmentend, '%d.%m.%Y'));
                     $this->construct_enrolments_info_cell($endtext);
-                } else if (!$this->user->enrolmentend && $this->user->enrolmentstatus == ENROL_USER_SUSPENDED) {
+                } else if (!$this->user->enrolmentend and $this->user->enrolmentstatus == ENROL_USER_SUSPENDED) {
                     // No enrolmentend and ENROL_USER_SUSPENDED.
                     $suspendext = get_string('enrolmentsuspended', 'attendance', userdate($this->user->enrolmentend, '%d.%m.%Y'));
                     $this->construct_enrolments_info_cell($suspendext);
                 } else {
-                    if ($sess->groupid == 0 || array_key_exists($sess->groupid, $this->reportdata->usersgroups[$this->user->id])) {
+                    if ($sess->groupid == 0 or array_key_exists($sess->groupid, $this->reportdata->usersgroups[$this->user->id])) {
                         $this->construct_not_taken_cell('?');
                     } else {
                         $this->construct_not_existing_for_user_session_cell('');

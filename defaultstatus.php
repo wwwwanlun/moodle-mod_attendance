@@ -37,7 +37,7 @@ $url = new moodle_url('/mod/attendance/defaultstatus.php', array('statusid' => $
 if (!empty($action)) {
     require_sesskey();
 }
-$PAGE->requires->js_call_amd('mod_attendance/statusset', 'init');
+
 $output = $PAGE->get_renderer('mod_attendance');
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('defaultstatus', 'mod_attendance'));
@@ -80,11 +80,10 @@ switch ($action) {
         $message .= str_repeat(html_writer::empty_tag('br'), 2);
         $message .= $status->acronym.': '.
             ($status->description ? $status->description : get_string('nodescription', 'attendance'));
-        $cancelurl = new moodle_url('/mod/attendance/defaultstatus.php');
         $confirmurl = $url;
         $confirmurl->param('confirm', 1);
 
-        echo $OUTPUT->confirm($message, $confirmurl, $cancelurl);
+        echo $OUTPUT->confirm($message, $confirmurl, $url);
         echo $OUTPUT->footer();
         exit;
     case mod_attendance_preferences_page_params::ACTION_HIDE:
@@ -102,7 +101,6 @@ switch ($action) {
         $description    = required_param_array('description', PARAM_TEXT);
         $grade          = required_param_array('grade', PARAM_RAW);
         $studentavailability = optional_param_array('studentavailability', '0', PARAM_RAW);
-        $availablebeforesession = optional_param_array('availablebeforesession', '0', PARAM_RAW);
         $unmarkedstatus = optional_param('setunmarked', null, PARAM_INT);
         foreach ($grade as &$val) {
             $val = unformat_float($val);
@@ -118,11 +116,8 @@ switch ($action) {
             if (!isset($studentavailability[$id]) || !is_numeric($studentavailability[$id])) {
                 $studentavailability[$id] = 0;
             }
-            if (!isset($availablebeforesession[$id])) {
-                $availablebeforesession[$id] = 0;
-            }
             $errors[$id] = attendance_update_status($status, $acronym[$id], $description[$id], $grade[$id],
-                                             null, null, null, $studentavailability[$id], $availablebeforesession[$id], $setunmarked);
+                                             null, null, null, $studentavailability[$id], $setunmarked);
         }
         echo $OUTPUT->notification(get_string('eventstatusupdated', 'attendance'), 'success');
 
@@ -130,7 +125,7 @@ switch ($action) {
 }
 
 $statuses = attendance_get_statuses(0, false);
-$prefdata = new mod_attendance\output\default_statusset($statuses, $errors);
+$prefdata = new attendance_default_statusset($statuses, $errors);
 echo $output->render($prefdata);
 
 echo $OUTPUT->footer();

@@ -13,15 +13,13 @@ class attendance_QRCodeRotate {
         this.password = "";
         this.qrCodeInstance = "";
         this.qrCodeHTMLElement = "";
-        this.timeOffset = new Date();
     }
 
-    start(sessionId, qrCodeHTMLElement, timerHTMLElement, serverTime) {
+    start(sessionId, qrCodeHTMLElement, textPasswordHTMLElement, timerHTMLElement) {
         this.sessionId = sessionId;
         this.qrCodeHTMLElement = qrCodeHTMLElement;
+        this.textPasswordHTMLElement = textPasswordHTMLElement;
         this.timerHTMLElement = timerHTMLElement;
-        this.timeOffset = new Date() - new Date(serverTime * 1000);
-        console.log(`Sync OK - Server time is ${new Date(serverTime * 1000)}\nClient's time is ${this.timeOffset < 0 ? 'late' : 'early'} by ${Math.abs(this.timeOffset)} milliseconds.`);
         this.fetchAndRotate();
     }
 
@@ -40,14 +38,12 @@ class attendance_QRCodeRotate {
         var qrcodeurl = document.URL.substr(0,document.URL.lastIndexOf('/')) + '/attendance.php?qrpass=' + password + '&sessid=' + this.sessionId;
         this.qrCodeInstance.clear();
         this.qrCodeInstance.makeCode(qrcodeurl);
+        // display new password
+        this.textPasswordHTMLElement.innerHTML = '<h2>'+password+'</h2>';
     }
 
     updateTimer(timeLeft) {
-        this.timerHTMLElement.innerHTML = timeLeft;
-    }
-
-    serverTime() {
-        return Math.round((new Date().getTime() - this.timeOffset) / 1000);
+        this.timerHTMLElement.innerHTML = '<h3>Time left: '+timeLeft+'</h3>';
     }
 
     startRotating() {
@@ -56,7 +52,7 @@ class attendance_QRCodeRotate {
         setInterval(function() {
             var found = Object.values(parent.password).find(function(element) {
 
-                if (element.expirytime > parent.serverTime()) {
+                if (element.expirytime > Math.round(new Date().getTime() / 1000)) {
                     return element;
                 }
             });
@@ -65,7 +61,7 @@ class attendance_QRCodeRotate {
                 location.reload(true);
             } else {
                 parent.changeQRCode(found.password);
-                parent.updateTimer(found.expirytime - parent.serverTime());
+                parent.updateTimer(found.expirytime - Math.round(new Date().getTime() / 1000));
 
             }
 

@@ -24,6 +24,7 @@
 
 namespace mod_attendance\import;
 
+defined('MOODLE_INTERNAL') || die();
 
 use csv_import_reader;
 use mod_attendance_notifyqueue;
@@ -228,7 +229,7 @@ class marksessions {
             }
             $sesslog[$userid] = new stdClass();
             $sesslog[$userid]->studentid = $userid;
-            $sesslog[$userid]->statusset = implode(",", $statusmap);
+            $sesslog[$userid]->statusset = $statuses;
             $sesslog[$userid]->remarks = '';
             $sesslog[$userid]->sessionid = $this->att->pageparams->sessionid;
             $sesslog[$userid]->timetaken = time();

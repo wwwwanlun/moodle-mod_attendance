@@ -8,14 +8,15 @@ The Attendance module was previously developed by
 
 Branches
 --------
-The following git branches are supported:
+The git branches here support the following versions.
 
-| Moodle version        | Branch            |
-|-----------------------|-------------------|
-| Moodle 4.1            | MOODLE_401_STABLE |
-| Moodle 4.2            | MOODLE_402_STABLE |
-| Moodle 4.3            | MOODLE_403_STABLE |
-| Moodle 4.4            | MOODLE_404_STABLE |
+| Moodle version     | Branch      |
+| ----------------- | ----------- |
+| Mooodle 3.5   | MOODLE_35_STABLE |
+| Mooodle 3.6   | MOODLE_36_STABLE |
+| Moodle 3.7 | MOODLE_37_STABLE |
+| Moodle 3.8 - 3.10 | MOODLE_38_STABLE |
+| Moodle 3.11 and higher | MOODLE_311_STABLE |
 
 # PURPOSE
 The Attendance module allows teachers to maintain a record of attendance, replacing or supplementing a paper-based attendance register.

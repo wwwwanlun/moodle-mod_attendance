@@ -23,6 +23,7 @@
  */
 
 namespace mod_attendance\event;
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Event for when an attendance session is updated.
@@ -76,6 +77,16 @@ class session_updated extends \core\event\base {
         return new \moodle_url('/mod/attendance/sessions.php', array('id' => $this->contextinstanceid,
                                                                      'sessionid' => $this->other['sessionid'],
                                                                      'action' => $this->other['action']));
+    }
+
+    /**
+     * Replace add_to_log() statement.
+     *
+     * @return array of parameters to be passed to legacy add_to_log() function.
+     */
+    protected function get_legacy_logdata() {
+        return array($this->courseid, 'attendance', 'session updated', $this->get_url(),
+            $this->other['info'], $this->contextinstanceid);
     }
 
     /**

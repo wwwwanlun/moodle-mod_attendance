@@ -24,6 +24,8 @@
 
 namespace mod_attendance\search;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Search area for mod_attendance activities.
  *

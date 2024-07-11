@@ -22,6 +22,7 @@
  * @copyright  2016 Dan Marsden http://danmarsden.com
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * stores constants/data used by sessions page params.
@@ -62,7 +63,4 @@ class mod_attendance_sessions_page_params {
 
     /** @var int view mode of taking attendance page*/
     public $action;
-
-    /** @var int - sessionid of session */
-    public $sessionid;
 }

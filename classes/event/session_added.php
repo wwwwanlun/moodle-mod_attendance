@@ -23,6 +23,7 @@
  */
 
 namespace mod_attendance\event;
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Event for when an attendance session is added
@@ -74,6 +75,16 @@ class session_added extends \core\event\base {
      */
     public function get_url() {
         return new \moodle_url('/mod/attendance/manage.php', array('id' => $this->contextinstanceid));
+    }
+
+    /**
+     * Replace add_to_log() statement.
+     *
+     * @return array of parameters to be passed to legacy add_to_log() function.
+     */
+    protected function get_legacy_logdata() {
+        return array($this->courseid, 'attendance', 'report', 'report.php?id=' . $this->objectid,
+            $this->other['info'], $this->contextinstanceid);
     }
 
     /**

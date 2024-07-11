@@ -24,6 +24,7 @@
 
 namespace mod_attendance\output;
 
+defined('MOODLE_INTERNAL') || die();
 /**
  * Mobile output class for the attendance.
  *
@@ -53,7 +54,6 @@ class mobile {
 
         require_once($CFG->dirroot.'/mod/attendance/locallib.php');
 
-        $versionname = $args['appversioncode'] >= 3950 ? 'latest' : 'ionic3';
         $cmid = $args['cmid'];
         $courseid = $args['courseid'];
         $takenstatus = empty($args['status']) ? '' : $args['status'];
@@ -138,7 +138,7 @@ class mobile {
             array($attendance->id, $timefrom, $timeto));
 
         if (!empty($sessions)) {
-            $userdata = new user_data($att, $USER->id, true);
+            $userdata = new \attendance_user_data($att, $USER->id, true);
             foreach ($sessions as $sess) {
                 if (!$isteacher && empty($userdata->sessionslog['c'.$sess->id])) {
                     // This session isn't viewable to this student - probably a group session.
@@ -252,7 +252,7 @@ class mobile {
             'templates' => [
                 [
                     'id' => 'main',
-                    'html' => $OUTPUT->render_from_template("mod_attendance/mobile_view_page_$versionname", $data),
+                    'html' => $OUTPUT->render_from_template('mod_attendance/mobile_view_page', $data),
                 ],
             ],
             'javascript' => '',
@@ -272,7 +272,6 @@ class mobile {
         require_once($CFG->dirroot.'/mod/attendance/locallib.php');
 
         $args = (object) $args;
-        $versionname = $args->appversioncode >= 3950 ? 'latest' : 'ionic3';
         $cmid = $args->cmid;
         $courseid = $args->courseid;
         $sessid = $args->sessid;
@@ -353,7 +352,7 @@ class mobile {
             'templates' => [
                 [
                     'id' => 'main',
-                    'html' => $OUTPUT->render_from_template("mod_attendance/mobile_user_form_$versionname", $data),
+                    'html' => $OUTPUT->render_from_template('mod_attendance/mobile_user_form', $data),
                     'cache-view' => false
                 ],
             ],
@@ -374,7 +373,6 @@ class mobile {
         require_once($CFG->dirroot.'/mod/attendance/locallib.php');
 
         $args = (object) $args;
-        $versionname = $args->appversioncode >= 3950 ? 'latest' : 'ionic3';
         $cmid = $args->cmid;
         $courseid = $args->courseid;
         $sessid = $args->sessid;
@@ -416,11 +414,10 @@ class mobile {
 
         foreach ($statuses as $status) {
             $data['statuses'][] = array('stid' => $status->id, 'acronym' => $status->acronym,
-                'description' => $status->description);
+                'description' => $status->description, 'selectall' => '');
         }
 
         $data['users'] = array();
-        $data['selectall'] = '';
         $users = $att->get_users($att->get_session_info($sessid)->groupid, 0);
         foreach ($users as $user) {
             $userpicture = new \user_picture($user);
@@ -430,7 +427,13 @@ class mobile {
             // Generate args to use in submission button here.
             $data['btnargs'] .= ', status'. $user->id. ': CONTENT_OTHERDATA.status'. $user->id;
             // Really Hacky way to do a select-all. This really needs to be moved into a JS function within the app.
-            $data['selectall'] .= "CONTENT_OTHERDATA.status".$user->id."=CONTENT_OTHERDATA.statusall;";
+            foreach ($statuses as $status) {
+                foreach ($data['statuses'] as $id => $st) { // Statuses not ordered by statusid.
+                    if ($st['stid'] == $status->id) { // Find the item that we need to add to.
+                        $data['statuses'][$id]['selectall'] .= "CONTENT_OTHERDATA.status".$user->id."=".$status->id.";";
+                    }
+                }
+            }
         }
         if (!empty($data['messages'])) {
             $data['showmessage'] = true;
@@ -440,7 +443,7 @@ class mobile {
             'templates' => [
                 [
                     'id' => 'main',
-                    'html' => $OUTPUT->render_from_template("mod_attendance/mobile_teacher_form_$versionname", $data),
+                    'html' => $OUTPUT->render_from_template('mod_attendance/mobile_teacher_form', $data),
                     'cache-view' => false
                 ],
             ],

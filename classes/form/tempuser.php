@@ -24,6 +24,8 @@
 
 namespace mod_attendance\form;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Class tempuser
  * @copyright  2013 Davo Smith, Synergy Learning

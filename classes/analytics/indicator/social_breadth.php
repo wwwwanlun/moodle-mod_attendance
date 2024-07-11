@@ -25,6 +25,8 @@
 
 namespace mod_attendance\analytics\indicator;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Social breadth indicator - attendance.
  *
