@@ -564,6 +564,11 @@ $string['strftimedmyw'] = '<nobr>%a %d %b %Y</nobr>';
 $string['strftimeh'] = '%I%p';
 $string['strftimehm'] = '%I:%M%p';
 $string['strftimeshortdate'] = '%d.%m.%Y';
+//add to conditional compare the date
+$string['strftimedmywp'] = '%d %b %Y';
+$string['strftimeyear'] = '%Y';
+$string['strftimeday'] = '%j';
+//end
 $string['availability'] = 'Self-marking availability';
 $string['availability_help'] = 'Restrict availability of this status. <br> If the option "Limited" is selected then provide the number of minutes that this status is available after the session starts. This is applicable when students are marking their own attendance.';
 $string['availabilityalways'] = 'Always';

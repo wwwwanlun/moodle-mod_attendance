@@ -418,28 +418,63 @@ class renderer extends plugin_renderer_base {
         }
 
         $date = userdate($sess->sessdate, get_string('strftimedmyw', 'attendance'));
+        $mydate = userdate($sess->sessdate, get_string('strftimedmywp', 'attendance'));
         $time = $this->construct_time($sess->sessdate, $sess->duration);
         if ($sess->lasttaken > 0) {
             if (has_capability('mod/attendance:changeattendances', $sessdata->att->context)) {
+                /**
+                 * if the attendance is already taken once, and the people has ability to take attendance (teacher, admin)
+                 *    if is admin->show reload button
+                 *    else->  check whether today's date is session's date
+                 *          TRUE->render the reload button
+                 *          FALSE->disbale the reload button
+                 */
                 $url = $sessdata->url_take($sess->id, $sess->groupid);
                 $title = get_string('changeattendance', 'attendance');
-
-                $date = html_writer::link($url, $date, array('title' => $title));
-                $time = html_writer::link($url, $time, array('title' => $title));
-
-                $actions .= $this->output->action_icon($url, new pix_icon('redo', $title, 'attendance'));
+                $today = date("j M Y");
+                if (is_siteadmin()) {
+                    $date = html_writer::link($url, $date, array('title' => $title));
+                    $time = html_writer::link($url, $time, array('title' => $title));
+                    $actions .= $this->output->action_icon($url, new pix_icon('redo', $title, 'attendance'));
+                } else if ($mydate == $today) {
+                    $date = html_writer::link($url, $date, array('title' => $title));
+                    $time = html_writer::link($url, $time, array('title' => $title));
+                    $actions .= $this->output->action_icon($url, new pix_icon('redo', $title, 'attendance'));
+                } 
             } else {
+                $url = $sessdata->url_take($sess->id, $sess->groupid);
                 $date = '<i>' . $date . '</i>';
                 $time = '<i>' . $time . '</i>';
+                $title = "there is no title";
             }
         } else {
+            /**
+             * if the attendance is never taken
+             * admin can take past attendance
+             * teacher can only take on the class day
+             */
             if (has_capability('mod/attendance:takeattendances', $sessdata->att->context)) {
-                $url = $sessdata->url_take($sess->id, $sess->groupid);
-                $title = get_string('takeattendance', 'attendance');
-                $actions .= $this->output->action_icon($url, new pix_icon('t/go', $title));
+                $today = date("j M Y");
+                $days_today = date("z");
+                $days_today++;
+                $year_today = date("Y");
+                $days_session = userdate($sess->sessdate, get_string('strftimeday', 'attendance'));
+                $year_session = userdate($sess->sessdate, get_string('strftimeyear', 'attendance'));
+                if (is_siteadmin()) {
+                    //admin can take today or past attendance
+                    if ($year_session < $year_today || ($year_session == $year_today && $days_session <= $days_today)) {
+                        $url = $sessdata->url_take($sess->id, $sess->groupid);
+                        $title = get_string('takeattendance', 'attendance');
+                        $actions .= $this->output->action_icon($url, new pix_icon('t/go', $title));
+                    }
+                } else if ($mydate == $today) {
+                    //teachers can only take attendance on the day of class
+                    $url = $sessdata->url_take($sess->id, $sess->groupid);
+                    $title = get_string('takeattendance', 'attendance');
+                    $actions .= $this->output->action_icon($url, new pix_icon('t/go', $title));
+                }
             }
         }
-
         if (has_capability('mod/attendance:manageattendances', $sessdata->att->context)) {
             $url = $sessdata->url_sessions($sess->id, mod_attendance_sessions_page_params::ACTION_UPDATE);
             $title = get_string('editsession', 'attendance');
